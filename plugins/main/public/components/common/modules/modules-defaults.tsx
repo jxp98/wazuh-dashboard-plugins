@@ -42,6 +42,7 @@ import {
   TAB_VIEW_ID_EVENTS,
   TAB_VIEW_NAME_DASHBOARD,
   TAB_VIEW_NAME_EVENTS,
+  WAZUH_RUNTIME_JAVA_VULNERABILITIES_PATTERN,
   WAZUH_SAMPLE_ALERTS_CATEGORY_AUDITING_POLICY_MONITORING,
   WAZUH_SAMPLE_ALERTS_CATEGORY_SECURITY,
   WAZUH_SAMPLE_ALERTS_CATEGORY_THREAT_DETECTION,
@@ -64,6 +65,7 @@ import {
   DashboardGoogleCloud,
   DashboardVuls,
   InventoryVuls,
+  RuntimeJavaVulnerabilitiesInventory,
   DashboardAzure,
 } from '../../overview';
 import {
@@ -342,6 +344,21 @@ export const ModulesDefaults = {
             <ButtonExploreAgent
               {...props}
               moduleIndexPatternTitle={WAZUH_VULNERABILITIES_PATTERN}
+            />
+          ),
+        ],
+      },
+      {
+        id: 'runtime-java',
+        name: 'Runtime Java',
+        component: RuntimeJavaVulnerabilitiesInventory,
+        buttons: [
+          ({ ...props }) => (
+            <ButtonExploreAgent
+              {...props}
+              moduleIndexPatternTitle={
+                WAZUH_RUNTIME_JAVA_VULNERABILITIES_PATTERN
+              }
             />
           ),
         ],

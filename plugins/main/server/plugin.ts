@@ -84,6 +84,7 @@ import {
   HEALTH_CHECK_TASK_INDEX_PATTERN_IT_HYGIENE_USERS_STATES,
   HEALTH_CHECK_TASK_INDEX_PATTERN_SCA_STATES,
   HEALTH_CHECK_TASK_INDEX_PATTERN_METRICS_COMMS,
+  HEALTH_CHECK_TASK_INDEX_PATTERN_RUNTIME_JAVA_VULNERABILITIES_STATES,
   HEALTH_CHECK_TASK_INDEX_PATTERN_VULNERABILITIES_STATES,
   WAZUH_EVENTS_PATTERN,
   WAZUH_EVENTS_ACCESS_MANAGEMENT_PATTERN,
@@ -128,6 +129,7 @@ import {
   WAZUH_METRICS_AGENTS_PATTERN,
   WAZUH_SCA_PATTERN,
   WAZUH_METRICS_COMMS_PATTERN,
+  WAZUH_RUNTIME_JAVA_VULNERABILITIES_PATTERN,
   WAZUH_VULNERABILITIES_PATTERN,
   WAZUH_ACTIVE_RESPONSES_PATTERN,
   HEALTH_CHECK_TASK_INDEX_PATTERN_ACTIVE_RESPONSES,
@@ -180,6 +182,7 @@ import IndexPatternSCAKnownFields from '../common/known-fields/states-sca.json';
 import IndexPatternMetricsCommsKnownFields from '../common/known-fields/metrics-comms.json';
 import IndexPatternVulnerabilitiesKnownFields from '../common/known-fields/states-vulnerabilities.json';
 import IndexPatternActiveResponsesKnownFields from '../common/known-fields/active-responses.json';
+import { IndexPatternRuntimeJavaVulnerabilitiesKnownFields } from '../common/known-fields/runtime-java-vulnerabilities';
 
 declare module 'opensearch_dashboards/server' {
   interface RequestHandlerContext {
@@ -330,6 +333,17 @@ export class WazuhPlugin implements Plugin<WazuhPluginSetup, WazuhPluginStart> {
         indexPatternID: WAZUH_VULNERABILITIES_PATTERN,
         options: {
           fieldsNoIndices: IndexPatternVulnerabilitiesKnownFields,
+        },
+      }),
+    );
+
+    core.healthCheck.register(
+      initializationTaskCreatorIndexPattern({
+        services: plugins.wazuhCore,
+        taskName: HEALTH_CHECK_TASK_INDEX_PATTERN_RUNTIME_JAVA_VULNERABILITIES_STATES,
+        indexPatternID: WAZUH_RUNTIME_JAVA_VULNERABILITIES_PATTERN,
+        options: {
+          fieldsNoIndices: IndexPatternRuntimeJavaVulnerabilitiesKnownFields,
         },
       }),
     );
