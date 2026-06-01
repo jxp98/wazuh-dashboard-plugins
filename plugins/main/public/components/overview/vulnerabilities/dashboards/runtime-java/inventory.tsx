@@ -54,6 +54,7 @@ import { ModuleEnabledCheck } from '../../common/components/check-module-enabled
 import { DiscoverNoResults } from '../../common/components/no_results';
 import { withRuntimeJavaVulnerabilitiesStateDataSource } from '../../common/hocs/validate-vulnerabilities-states-index-pattern';
 import { runtimeJavaVulnerabilitiesDefaultColumns } from './config';
+import { RuntimeJavaVulnerabilitiesSummary } from './summary';
 import '../inventory/inventory.scss';
 
 const RuntimeJavaVulnerabilitiesInventoryComponent = () => {
@@ -208,70 +209,79 @@ const RuntimeJavaVulnerabilitiesInventoryComponent = () => {
               <DiscoverNoResults />
             ) : null}
             {!isDataSourceLoading && results?.hits?.total > 0 ? (
-              <EuiPanel
-                paddingSize='s'
-                hasShadow={false}
-                hasBorder={false}
-                color='transparent'
-              >
-                <div className='vulsInventoryDataGrid'>
-                  <EuiDataGrid
-                    {...dataGridProps}
-                    className={sideNavDocked ? 'dataGridDockedNav' : ''}
-                    toolbarVisibility={{
-                      showColumnSelector: { allowHide: false },
-                      additionalControls: (
-                        <>
-                          <HitsCounter
-                            hits={results?.hits?.total}
-                            showResetButton={false}
-                            tooltip={
-                              results?.hits?.total &&
-                              results?.hits?.total > MAX_ENTRIES_PER_QUERY
-                                ? {
-                                    ariaLabel: 'Info',
-                                    content: `The query results has exceeded the limit of ${formatNumWithCommas(
-                                      MAX_ENTRIES_PER_QUERY,
-                                    )} hits. To provide a better experience the table only shows the first ${formatNumWithCommas(
-                                      MAX_ENTRIES_PER_QUERY,
-                                    )} hits.`,
-                                    iconType: 'iInCircle',
-                                    position: 'top',
-                                  }
-                                : undefined
-                            }
-                          />
-                          <EuiButtonEmpty
-                            disabled={
-                              results?.hits?.total === 0 ||
-                              !columnVisibility?.visibleColumns?.length
-                            }
-                            size='xs'
-                            iconType='exportAction'
-                            color='text'
-                            isLoading={isExporting}
-                            className='euiDataGrid__controlBtn'
-                            onClick={onClickExportResults}
-                          >
-                            Export Formatted
-                          </EuiButtonEmpty>
+              <>
+                <RuntimeJavaVulnerabilitiesSummary
+                  fetchData={fetchData}
+                  query={query}
+                  isLoading={isDataSourceLoading}
+                  fingerprint={fingerprint}
+                  filtersFingerprint={JSON.stringify(fetchFilters)}
+                />
+                <EuiPanel
+                  paddingSize='s'
+                  hasShadow={false}
+                  hasBorder={false}
+                  color='transparent'
+                >
+                  <div className='vulsInventoryDataGrid'>
+                    <EuiDataGrid
+                      {...dataGridProps}
+                      className={sideNavDocked ? 'dataGridDockedNav' : ''}
+                      toolbarVisibility={{
+                        showColumnSelector: { allowHide: false },
+                        additionalControls: (
+                          <>
+                            <HitsCounter
+                              hits={results?.hits?.total}
+                              showResetButton={false}
+                              tooltip={
+                                results?.hits?.total &&
+                                results?.hits?.total > MAX_ENTRIES_PER_QUERY
+                                  ? {
+                                      ariaLabel: 'Info',
+                                      content: `The query results has exceeded the limit of ${formatNumWithCommas(
+                                        MAX_ENTRIES_PER_QUERY,
+                                      )} hits. To provide a better experience the table only shows the first ${formatNumWithCommas(
+                                        MAX_ENTRIES_PER_QUERY,
+                                      )} hits.`,
+                                      iconType: 'iInCircle',
+                                      position: 'top',
+                                    }
+                                  : undefined
+                              }
+                            />
+                            <EuiButtonEmpty
+                              disabled={
+                                results?.hits?.total === 0 ||
+                                !columnVisibility?.visibleColumns?.length
+                              }
+                              size='xs'
+                              iconType='exportAction'
+                              color='text'
+                              isLoading={isExporting}
+                              className='euiDataGrid__controlBtn'
+                              onClick={onClickExportResults}
+                            >
+                              Export Formatted
+                            </EuiButtonEmpty>
 
-                          <RestoreStateColumnsButton
-                            dataGridStatePersistenceManager={
-                              dataGridProps.dataGridStatePersistenceManager
-                            }
-                          />
+                            <RestoreStateColumnsButton
+                              dataGridStatePersistenceManager={
+                                dataGridProps.dataGridStatePersistenceManager
+                              }
+                            />
 
-                          <DataGridVisibleColumnsSelector
-                            availableColumns={dataGridProps.columnsAvailable}
-                            columnVisibility={dataGridProps.columnVisibility}
-                          />
-                        </>
-                      ),
-                    }}
-                  />
-                </div>
-              </EuiPanel>
+                            <DataGridVisibleColumnsSelector
+                              availableColumns={dataGridProps.columnsAvailable}
+                              columnVisibility={dataGridProps.columnVisibility}
+                            />
+                          </>
+                        ),
+                      }}
+                    />
+                  </div>
+                </EuiPanel>
+              </>
             ) : null}
             {inspectedHit && (
               <EuiFlyout onClose={closeFlyoutHandler} size='m'>
