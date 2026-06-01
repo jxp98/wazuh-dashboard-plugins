@@ -15,6 +15,7 @@ export { DashboardTSC } from './regulatory-compliance/tsc/dashboards';
 export {
   DashboardVuls,
   InventoryVuls,
+  RuntimeJavaVulnerabilitiesDashboard,
   RuntimeJavaVulnerabilitiesInventory,
 } from './vulnerabilities';
 export { DashboardAzure } from './azure/dashboards';

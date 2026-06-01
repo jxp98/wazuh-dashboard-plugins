@@ -65,6 +65,7 @@ import {
   DashboardGoogleCloud,
   DashboardVuls,
   InventoryVuls,
+  RuntimeJavaVulnerabilitiesDashboard,
   RuntimeJavaVulnerabilitiesInventory,
   DashboardAzure,
 } from '../../overview';
@@ -349,8 +350,23 @@ export const ModulesDefaults = {
         ],
       },
       {
-        id: 'runtime-java',
-        name: 'Runtime Java',
+        id: 'runtime-java-dashboard',
+        name: 'Runtime Java dashboard',
+        component: RuntimeJavaVulnerabilitiesDashboard,
+        buttons: [
+          ({ ...props }) => (
+            <ButtonExploreAgent
+              {...props}
+              moduleIndexPatternTitle={
+                WAZUH_RUNTIME_JAVA_VULNERABILITIES_PATTERN
+              }
+            />
+          ),
+        ],
+      },
+      {
+        id: 'runtime-java-inventory',
+        name: 'Runtime Java inventory',
         component: RuntimeJavaVulnerabilitiesInventory,
         buttons: [
           ({ ...props }) => (

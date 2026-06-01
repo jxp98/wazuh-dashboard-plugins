@@ -54,7 +54,6 @@ import { ModuleEnabledCheck } from '../../common/components/check-module-enabled
 import { DiscoverNoResults } from '../../common/components/no_results';
 import { withRuntimeJavaVulnerabilitiesStateDataSource } from '../../common/hocs/validate-vulnerabilities-states-index-pattern';
 import { runtimeJavaVulnerabilitiesDefaultColumns } from './config';
-import { RuntimeJavaVulnerabilitiesSummary } from './summary';
 import '../inventory/inventory.scss';
 
 const RuntimeJavaVulnerabilitiesInventoryComponent = () => {
@@ -210,13 +209,6 @@ const RuntimeJavaVulnerabilitiesInventoryComponent = () => {
             ) : null}
             {!isDataSourceLoading && results?.hits?.total > 0 ? (
               <>
-                <RuntimeJavaVulnerabilitiesSummary
-                  fetchData={fetchData}
-                  query={query}
-                  isLoading={isDataSourceLoading}
-                  fingerprint={fingerprint}
-                  filtersFingerprint={JSON.stringify(fetchFilters)}
-                />
                 <EuiPanel
                   paddingSize='s'
                   hasShadow={false}
