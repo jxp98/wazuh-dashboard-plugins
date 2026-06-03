@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   EuiBasicTableColumn,
+  EuiCard,
   EuiFlexGrid,
-  EuiFlexGroup,
   EuiFlexItem,
+  EuiHorizontalRule,
   EuiInMemoryTable,
   EuiPanel,
   EuiSpacer,
@@ -27,9 +28,16 @@ type RuntimeJavaSummaryProps = {
   filtersFingerprint: string;
 };
 
-const topTableColumns = (
-  label: string,
-): EuiBasicTableColumn<RuntimeJavaBucket>[] => [
+const severityPalette: Record<string, string> = {
+  critical: '#cc5642',
+  high: '#f5a700',
+  medium: '#6092c0',
+  low: '#209280',
+};
+
+const severityOrder = ['critical', 'high', 'medium', 'low'];
+
+const topTableColumns = (label: string): EuiBasicTableColumn<RuntimeJavaBucket>[] => [
   {
     field: 'key',
     name: label,
@@ -44,6 +52,65 @@ const topTableColumns = (
   },
 ];
 
+const formatLabel = (value: string) =>
+  value ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase() : 'Unknown';
+
+const RuntimeJavaSeverityCard = ({
+  severity,
+  count,
+  isLoading,
+}: {
+  severity: string;
+  count: number;
+  isLoading: boolean;
+}) => (
+  <EuiPanel hasBorder paddingSize='m'>
+    <EuiStat
+      title={count}
+      description={formatLabel(severity)}
+      titleSize='m'
+      isLoading={isLoading}
+      titleColor='default'
+    />
+    <EuiHorizontalRule margin='s' />
+    <EuiText size='xs' color='subdued'>
+      <span
+        style={{
+          color: severityPalette[severity.toLowerCase()] || '#535966',
+          fontWeight: 700,
+        }}
+      >
+        Runtime Java severity bucket
+      </span>
+    </EuiText>
+  </EuiPanel>
+);
+
+const RuntimeJavaOverviewCard = ({
+  title,
+  value,
+  subtitle,
+  isLoading,
+}: {
+  title: string;
+  value: number;
+  subtitle: string;
+  isLoading: boolean;
+}) => (
+  <EuiCard
+    textAlign='left'
+    hasBorder
+    paddingSize='m'
+    title={title}
+    description={subtitle}
+    betaBadgeLabel={isLoading ? 'Loading' : undefined}
+  >
+    <EuiTitle size='l'>
+      <h2>{value}</h2>
+    </EuiTitle>
+  </EuiCard>
+);
+
 const RuntimeJavaTopTable = ({
   title,
   label,
@@ -55,8 +122,8 @@ const RuntimeJavaTopTable = ({
   items: RuntimeJavaBucket[];
   isLoading: boolean;
 }) => (
-  <EuiPanel paddingSize='m' hasBorder={true}>
-    <EuiTitle size='xxs'>
+  <EuiPanel paddingSize='m' hasBorder>
+    <EuiTitle size='xs'>
       <h3>{title}</h3>
     </EuiTitle>
     <EuiSpacer size='s' />
@@ -85,6 +152,8 @@ export const RuntimeJavaVulnerabilitiesSummary = ({
   const [isSummaryLoading, setIsSummaryLoading] = useState(false);
   const [summaryResults, setSummaryResults] = useState<SearchResponse>();
   const [error, setError] = useState<Error>();
+  const queryFingerprint = JSON.stringify(query);
+  const aggregations = useMemo(() => summaryResults?.aggregations || {}, [summaryResults]);
 
   useEffect(() => {
     if (isLoading) {
@@ -104,7 +173,7 @@ export const RuntimeJavaVulnerabilitiesSummary = ({
           size: 10,
         },
       },
-      runtime_paths: {
+      runtimePaths: {
         terms: {
           field: 'runtime_java.component.runtime_path',
           size: 10,
@@ -116,15 +185,20 @@ export const RuntimeJavaVulnerabilitiesSummary = ({
           size: 10,
         },
       },
-      affected_agents: {
+      affectedAgents: {
         cardinality: {
           field: 'wazuh.agent.id',
         },
       },
-      agent_distribution: {
+      agentDistribution: {
         terms: {
-          field: 'wazuh.agent.name',
+          field: 'wazuh.agent.name.keyword',
           size: 10,
+        },
+      },
+      vulnerableComponents: {
+        cardinality: {
+          field: 'runtime_java.component.runtime_path',
         },
       },
     };
@@ -140,67 +214,111 @@ export const RuntimeJavaVulnerabilitiesSummary = ({
       aggs,
     })
       .then(results => setSummaryResults(results))
-      .catch(error => setError(error))
+      .catch(fetchError => setError(fetchError))
       .finally(() => setIsSummaryLoading(false));
-  }, [JSON.stringify(query), fingerprint, filtersFingerprint, isLoading]);
+  }, [query, queryFingerprint, fingerprint, filtersFingerprint, isLoading, fetchData]);
 
-  const aggregations = summaryResults?.aggregations || {};
   const totalFindings =
     typeof summaryResults?.hits?.total === 'number'
       ? summaryResults.hits.total
       : summaryResults?.hits?.total?.value || 0;
-  const affectedAgents = aggregations?.affected_agents?.value || 0;
-  const severityBuckets = aggregations?.severity?.buckets || [];
+  const affectedAgents = aggregations?.affectedAgents?.value || 0;
+  const vulnerableComponents = aggregations?.vulnerableComponents?.value || 0;
   const packageBuckets = aggregations?.packages?.buckets || [];
-  const runtimePathBuckets = aggregations?.runtime_paths?.buckets || [];
+  const runtimePathBuckets = aggregations?.runtimePaths?.buckets || [];
   const cveBuckets = aggregations?.cves?.buckets || [];
-  const agentBuckets = aggregations?.agent_distribution?.buckets || [];
+  const agentBuckets = aggregations?.agentDistribution?.buckets || [];
+
+  const severityCounts = useMemo(() => {
+    const counts: Record<string, number> = {
+      critical: 0,
+      high: 0,
+      medium: 0,
+      low: 0,
+    };
+
+    const severityBuckets = aggregations?.severity?.buckets || [];
+
+    severityBuckets.forEach((bucket: RuntimeJavaBucket) => {
+      const normalized = String(bucket.key || '').toLowerCase();
+      if (normalized in counts) {
+        counts[normalized] = bucket.doc_count;
+      }
+    });
+
+    return counts;
+  }, [aggregations]);
 
   return (
     <>
-      <EuiFlexGroup gutterSize='m' responsive={true}>
-        <EuiFlexItem grow={false}>
-          <EuiPanel paddingSize='m' hasBorder={true}>
-            <EuiStat
-              title={totalFindings}
-              description='Runtime Java findings'
+      <EuiPanel hasBorder paddingSize='m'>
+        <EuiTitle size='s'>
+          <h2>Runtime Java vulnerability overview</h2>
+        </EuiTitle>
+        <EuiSpacer size='xs' />
+        <EuiText size='s' color='subdued'>
+          Mirrors the native vulnerability dashboard structure while keeping Runtime Java specific dimensions such as
+          runtime path, package and CVE concentration.
+        </EuiText>
+      </EuiPanel>
+
+      <EuiSpacer size='m' />
+
+      <EuiFlexGrid columns={4} gutterSize='m'>
+        {severityOrder.map(severity => (
+          <EuiFlexItem key={severity}>
+            <RuntimeJavaSeverityCard
+              severity={severity}
+              count={severityCounts[severity] || 0}
               isLoading={isSummaryLoading}
-              titleSize='s'
             />
-          </EuiPanel>
-        </EuiFlexItem>
-        <EuiFlexItem grow={false}>
-          <EuiPanel paddingSize='m' hasBorder={true}>
-            <EuiStat
-              title={affectedAgents}
-              description='Affected agents'
-              isLoading={isSummaryLoading}
-              titleSize='s'
-            />
-          </EuiPanel>
-        </EuiFlexItem>
+          </EuiFlexItem>
+        ))}
+      </EuiFlexGrid>
+
+      <EuiSpacer size='m' />
+
+      <EuiFlexGrid columns={3} gutterSize='m'>
         <EuiFlexItem>
-          <RuntimeJavaTopTable
-            title='Findings by severity'
-            label='Severity'
-            items={severityBuckets}
+          <RuntimeJavaOverviewCard
+            title='Runtime findings'
+            value={totalFindings}
+            subtitle='Current Runtime Java vulnerability documents in the state index.'
             isLoading={isSummaryLoading}
           />
         </EuiFlexItem>
-      </EuiFlexGroup>
+        <EuiFlexItem>
+          <RuntimeJavaOverviewCard
+            title='Affected agents'
+            value={affectedAgents}
+            subtitle='Unique agents with at least one Runtime Java vulnerability finding.'
+            isLoading={isSummaryLoading}
+          />
+        </EuiFlexItem>
+        <EuiFlexItem>
+          <RuntimeJavaOverviewCard
+            title='Vulnerable runtime paths'
+            value={vulnerableComponents}
+            subtitle='Distinct runtime paths currently associated with Runtime Java findings.'
+            isLoading={isSummaryLoading}
+          />
+        </EuiFlexItem>
+      </EuiFlexGrid>
 
       {error ? (
         <>
-          <EuiSpacer size='s' />
-          <EuiText color='danger' size='s'>
-            Runtime Java summary could not be loaded: {error.message || error}
-          </EuiText>
+          <EuiSpacer size='m' />
+          <EuiPanel color='danger' hasBorder paddingSize='m'>
+            <EuiText color='danger' size='s'>
+              Runtime Java summary could not be loaded: {error.message || String(error)}
+            </EuiText>
+          </EuiPanel>
         </>
       ) : null}
 
       <EuiSpacer size='m' />
 
-      <EuiFlexGrid columns={4} gutterSize='m'>
+      <EuiFlexGrid columns={2} gutterSize='m'>
         <EuiFlexItem>
           <RuntimeJavaTopTable
             title='Top vulnerable Java packages'
