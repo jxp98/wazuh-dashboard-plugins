@@ -2,6 +2,7 @@ import React from 'react';
 import { EuiButton, EuiEmptyPrompt, EuiLink } from '@elastic/eui';
 import { withHealthCheckChecks } from '../../../../common/hocs';
 import {
+  HEALTH_CHECK_TASK_INDEX_PATTERN_RUNTIME_JAVA_VULNERABILITIES_HISTORY,
   HEALTH_CHECK_TASK_INDEX_PATTERN_RUNTIME_JAVA_VULNERABILITIES_STATES,
   HEALTH_CHECK_TASK_INDEX_PATTERN_VULNERABILITIES_STATES,
 } from '../../../../../../common/constants';
@@ -55,5 +56,11 @@ export const withVulnerabilitiesStateDataSource = withHealthCheckChecks(
 export const withRuntimeJavaVulnerabilitiesStateDataSource =
   withHealthCheckChecks(
     [HEALTH_CHECK_TASK_INDEX_PATTERN_RUNTIME_JAVA_VULNERABILITIES_STATES],
+    PromptVulnerabilitiesIndexPatternMissing,
+  );
+
+export const withRuntimeJavaVulnerabilitiesHistoryDataSource =
+  withHealthCheckChecks(
+    [HEALTH_CHECK_TASK_INDEX_PATTERN_RUNTIME_JAVA_VULNERABILITIES_HISTORY],
     PromptVulnerabilitiesIndexPatternMissing,
   );

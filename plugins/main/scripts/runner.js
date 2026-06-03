@@ -34,8 +34,8 @@ function getProjectInfo() {
 
 function getBuildArgs({ app, version }) {
   return app === 'osd'
-    ? `--opensearch-dashboards-version=${version}`
-    : `--kibana-version=${version}`;
+    ? `--opensearch-dashboards-version ${version}`
+    : `--kibana-version ${version}`;
 }
 
 /**
@@ -122,6 +122,11 @@ function main() {
         cmd: 'plugin-helpers build',
         args: getBuildArgs({ ...projectInfo }),
       });
+      // Local Docker builds should not block on the interactive
+      // indexer-resources downloader during package installation.
+      if (!process.env.GIT_REF && !process.env.SKIP_DOWNLOAD_INDEXER_RESOURCES) {
+        envVars.SKIP_DOWNLOAD_INDEXER_RESOURCES = 'true';
+      }
       break;
 
     case 'test':

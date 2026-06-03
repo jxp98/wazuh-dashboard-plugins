@@ -84,6 +84,7 @@ import {
   HEALTH_CHECK_TASK_INDEX_PATTERN_IT_HYGIENE_USERS_STATES,
   HEALTH_CHECK_TASK_INDEX_PATTERN_SCA_STATES,
   HEALTH_CHECK_TASK_INDEX_PATTERN_METRICS_COMMS,
+  HEALTH_CHECK_TASK_INDEX_PATTERN_RUNTIME_JAVA_VULNERABILITIES_HISTORY,
   HEALTH_CHECK_TASK_INDEX_PATTERN_RUNTIME_JAVA_VULNERABILITIES_STATES,
   HEALTH_CHECK_TASK_INDEX_PATTERN_VULNERABILITIES_STATES,
   WAZUH_EVENTS_PATTERN,
@@ -129,6 +130,7 @@ import {
   WAZUH_METRICS_AGENTS_PATTERN,
   WAZUH_SCA_PATTERN,
   WAZUH_METRICS_COMMS_PATTERN,
+  WAZUH_RUNTIME_JAVA_VULNERABILITIES_HISTORY_PATTERN,
   WAZUH_RUNTIME_JAVA_VULNERABILITIES_PATTERN,
   WAZUH_VULNERABILITIES_PATTERN,
   WAZUH_ACTIVE_RESPONSES_PATTERN,
@@ -343,6 +345,19 @@ export class WazuhPlugin implements Plugin<WazuhPluginSetup, WazuhPluginStart> {
         taskName: HEALTH_CHECK_TASK_INDEX_PATTERN_RUNTIME_JAVA_VULNERABILITIES_STATES,
         indexPatternID: WAZUH_RUNTIME_JAVA_VULNERABILITIES_PATTERN,
         options: {
+          fieldsNoIndices: IndexPatternRuntimeJavaVulnerabilitiesKnownFields,
+        },
+      }),
+    );
+
+    core.healthCheck.register(
+      initializationTaskCreatorIndexPattern({
+        services: plugins.wazuhCore,
+        taskName: HEALTH_CHECK_TASK_INDEX_PATTERN_RUNTIME_JAVA_VULNERABILITIES_HISTORY,
+        indexPatternID: WAZUH_RUNTIME_JAVA_VULNERABILITIES_HISTORY_PATTERN,
+        options: {
+          savedObjectOverwrite: defineTimeFieldNameIfExist('event.created'),
+          hasTimeFieldName: true,
           fieldsNoIndices: IndexPatternRuntimeJavaVulnerabilitiesKnownFields,
         },
       }),

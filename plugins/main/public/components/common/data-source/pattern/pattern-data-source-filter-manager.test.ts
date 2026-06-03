@@ -16,6 +16,7 @@ import {
   IndexPattern,
 } from '../../../../../../../src/plugins/data/public';
 import { getDataPlugin } from '../../../../kibana-services';
+import { AppState } from '../../../../react-services/app-state';
 import rison from 'rison-node';
 
 jest.mock('../../../../redux/store', () => ({
@@ -371,6 +372,47 @@ describe('PatternDataSourceFilterManager', () => {
       const filter =
         PatternDataSourceFilterManager.getPinnedAgentFilter('index-title');
       expect(filter.length).toBe(0);
+    });
+  });
+
+  describe('getClusterFilters', () => {
+    it('should skip the cluster filter when the cluster mode is disabled', () => {
+      const getClusterInfoSpy = jest
+        .spyOn(AppState, 'getClusterInfo')
+        .mockReturnValue({
+          status: 'disabled',
+          cluster: 'Disabled',
+        });
+
+      expect(
+        PatternDataSourceFilterManager.getClusterFilters(
+          'my-index',
+          'controlledByValue',
+        ),
+      ).toEqual([]);
+
+      getClusterInfoSpy.mockRestore();
+    });
+
+    it('should return the cluster filter when the cluster mode is enabled', () => {
+      const getClusterInfoSpy = jest
+        .spyOn(AppState, 'getClusterInfo')
+        .mockReturnValue({
+          status: 'enabled',
+          cluster: 'wazuh',
+        });
+
+      const filters = PatternDataSourceFilterManager.getClusterFilters(
+        'my-index',
+        'controlledByValue',
+      );
+
+      expect(filters).toHaveLength(1);
+      expect(filters[0].meta.key).toBe('wazuh.cluster.name');
+      expect(filters[0].meta.value).toBe('wazuh');
+      expect(filters[0].meta.controlledBy).toBe('controlledByValue');
+
+      getClusterInfoSpy.mockRestore();
     });
   });
 

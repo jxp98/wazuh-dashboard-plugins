@@ -2,10 +2,12 @@ import { AppState } from '../../../../react-services/app-state';
 import { search } from '../../../../components/common/search-bar';
 import { getDataPlugin } from '../../../../kibana-services';
 import { getLastAlertsQuery } from './last-alerts-query';
+import { PatternDataSourceFilterManager } from '../../../../components/common/data-source/pattern/pattern-data-source-filter-manager';
+import { ErrorDataSourceServerAPIContextFilter } from '../../../../utils/errors';
 
 interface Last24HoursAlerts {
   count: number;
-  cluster: {
+  cluster?: {
     field: string;
     name: string;
   };
@@ -24,22 +26,37 @@ export const getLast24HoursAlerts = async (
     const currentIndexPattern = await getDataPlugin().indexPatterns.get(
       patternId,
     );
-    const clusterValue = AppState.getClusterInfo().cluster;
+    const clusterInfo = AppState.getClusterInfo();
+    const clusterValue =
+      PatternDataSourceFilterManager.getClusterFilterValue(clusterInfo);
+
+    if (
+      clusterValue === undefined &&
+      !PatternDataSourceFilterManager.isClusterModeDisabled(clusterInfo)
+    ) {
+      throw new ErrorDataSourceServerAPIContextFilter(
+        'Filter could not be created because no server API is selected. Make sure a server API is available and choose one in the selector.',
+      );
+    }
 
     const lastAlertsQuery = getLastAlertsQuery(
       currentIndexPattern,
-      clusterValue,
       ruleLevel,
+      clusterValue,
     );
 
     const result = await search(lastAlertsQuery);
     const count = result?.hits?.total;
     return {
       count,
-      cluster: {
-        field: 'cluster.name',
-        name: clusterValue,
-      },
+      ...(clusterValue
+        ? {
+            cluster: {
+              field: 'cluster.name',
+              name: clusterValue,
+            },
+          }
+        : {}),
       indexPatternId: currentIndexPattern.id,
     };
   } catch (error) {

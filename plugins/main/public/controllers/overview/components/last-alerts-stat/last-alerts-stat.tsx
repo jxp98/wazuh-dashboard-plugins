@@ -245,21 +245,23 @@ export function LastAlertsStat({
         };
 
         // add predefined filters with URL filter format
-        const clusterNameFilter = PatternDataSourceFilterManager.createFilter(
-          FILTER_OPERATOR.IS,
-          cluster.field,
-          cluster.name,
-          indexPatternId,
-        );
         const ruleLevelFilter = PatternDataSourceFilterManager.createFilter(
           FILTER_OPERATOR.IS,
           'rule.level',
           severityKey,
           indexPatternId,
         );
+        const clusterNameFilter = cluster
+          ? PatternDataSourceFilterManager.createFilter(
+              FILTER_OPERATOR.IS,
+              cluster.field,
+              cluster.name,
+              indexPatternId,
+            )
+          : undefined;
         const predefinedFilters =
           PatternDataSourceFilterManager.filtersToURLFormat([
-            clusterNameFilter,
+            ...(clusterNameFilter ? [clusterNameFilter] : []),
             ruleLevelFilter,
           ]);
 

@@ -1,4 +1,5 @@
 import {
+  WAZUH_RUNTIME_JAVA_VULNERABILITIES_HISTORY_PATTERN,
   WAZUH_RUNTIME_JAVA_VULNERABILITIES_PATTERN,
   WAZUH_VULNERABILITIES_PATTERN,
 } from '../../../../../../common/constants';
@@ -10,4 +11,9 @@ export const VulnerabilitiesDataSourceRepository =
 export const RuntimeJavaVulnerabilitiesDataSourceRepository =
   createPatternDataSourceRepositoryUseValue(
     WAZUH_RUNTIME_JAVA_VULNERABILITIES_PATTERN,
+  );
+
+export const RuntimeJavaVulnerabilitiesHistoryDataSourceRepository =
+  createPatternDataSourceRepositoryUseValue(
+    WAZUH_RUNTIME_JAVA_VULNERABILITIES_HISTORY_PATTERN,
   );

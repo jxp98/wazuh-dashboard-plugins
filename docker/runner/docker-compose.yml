@@ -13,6 +13,9 @@ services:
     container_name: runner
     image: quay.io/wazuh/$APP-dev:$VERSION
     working_dir: /home/node/kbn/plugins/wazuh
+    environment:
+      GIT_REF: ${GIT_REF:-}
+      SKIP_DOWNLOAD_INDEXER_RESOURCES: ${SKIP_DOWNLOAD_INDEXER_RESOURCES:-}
     volumes:
       - $REPO:/home/node/kbn/plugins/wazuh
     tty: true

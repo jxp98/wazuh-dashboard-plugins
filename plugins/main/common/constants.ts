@@ -41,6 +41,8 @@ export const WAZUH_METRICS_COMMS_PATTERN = 'wazuh-metrics-comms*';
 export const WAZUH_VULNERABILITIES_PATTERN = 'wazuh-states-vulnerabilities*';
 export const WAZUH_RUNTIME_JAVA_VULNERABILITIES_PATTERN =
   'wazuh-states-vulnerabilities-runtime-java*';
+export const WAZUH_RUNTIME_JAVA_VULNERABILITIES_HISTORY_PATTERN =
+  'wazuh-states-vulnerabilities-runtime-java-history*';
 export const WAZUH_INDEX_TYPE_VULNERABILITIES = 'vulnerabilities';
 export const VULNERABILITY_IMPLICIT_CLUSTER_MODE_FILTER = 'wazuh.cluster.name';
 
@@ -48,6 +50,8 @@ export const VULNERABILITY_IMPLICIT_CLUSTER_MODE_FILTER = 'wazuh.cluster.name';
 export const WAZUH_INDEX_TYPE_STATES_VULNERABILITIES = 'states-vulnerabilities';
 export const WAZUH_INDEX_TYPE_STATES_VULNERABILITIES_RUNTIME_JAVA =
   'states-vulnerabilities-runtime-java';
+export const WAZUH_INDEX_TYPE_STATES_VULNERABILITIES_RUNTIME_JAVA_HISTORY =
+  'states-vulnerabilities-runtime-java-history';
 export const WAZUH_INDEX_TYPE_STATES_FIM = 'states-fim';
 export const WAZUH_INDEX_TYPE_STATES_FIM_FILES = 'states-fim-files';
 export const WAZUH_INDEX_TYPE_STATES_FIM_REGISTRIES_KEYS =
@@ -926,6 +930,8 @@ export const HEALTH_CHECK_TASK_INDEX_PATTERN_VULNERABILITIES_STATES =
   'index-pattern:states-vulnerabilities';
 export const HEALTH_CHECK_TASK_INDEX_PATTERN_RUNTIME_JAVA_VULNERABILITIES_STATES =
   'index-pattern:states-vulnerabilities-runtime-java';
+export const HEALTH_CHECK_TASK_INDEX_PATTERN_RUNTIME_JAVA_VULNERABILITIES_HISTORY =
+  'index-pattern:states-vulnerabilities-runtime-java-history';
 
 export const HEALTH_CHECK_TASK_INDEX_PATTERN_METRICS_AGENTS =
   'index-pattern:metrics-agents';

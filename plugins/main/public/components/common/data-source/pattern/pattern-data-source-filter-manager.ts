@@ -233,13 +233,35 @@ export class PatternDataSourceFilterManager
   /**
    * Return the cluster filter
    */
+  static isClusterModeDisabled(clusterInfo = AppState.getClusterInfo()) {
+    return (
+      clusterInfo?.status === 'disabled' || clusterInfo?.cluster === 'Disabled'
+    );
+  }
+
+  static getClusterFilterValue(
+    clusterInfo = AppState.getClusterInfo(),
+  ): string | undefined {
+
+    if (PatternDataSourceFilterManager.isClusterModeDisabled(clusterInfo)) {
+      return undefined;
+    }
+
+    return clusterInfo?.cluster;
+  }
+
   static getClusterFilters(
     indexPatternId: string,
     controlledByValue: string,
     key?: string,
   ): tFilter[] {
-    const { cluster } = AppState.getClusterInfo();
-    const filterValue = cluster;
+    const filterValue = PatternDataSourceFilterManager.getClusterFilterValue();
+
+    if (filterValue === undefined) {
+      if (PatternDataSourceFilterManager.isClusterModeDisabled()) {
+        return [];
+      }
+    }
 
     if (filterValue === undefined) {
       throw new ErrorDataSourceServerAPIContextFilter(

@@ -16,6 +16,7 @@ export {
   DashboardVuls,
   InventoryVuls,
   RuntimeJavaVulnerabilitiesDashboard,
+  RuntimeJavaVulnerabilitiesHistory,
   RuntimeJavaVulnerabilitiesInventory,
 } from './vulnerabilities';
 export { DashboardAzure } from './azure/dashboards';

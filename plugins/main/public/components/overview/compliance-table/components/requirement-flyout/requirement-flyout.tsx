@@ -23,7 +23,6 @@ import {
   EuiFlexItem,
   EuiSpacer,
 } from '@elastic/eui';
-import { AppState } from '../../../../../react-services/app-state';
 import { requirementGoal } from '../../requirement-goal';
 import { getUiSettings } from '../../../../../kibana-services';
 import {
@@ -33,6 +32,7 @@ import {
 import { WzFlyout } from '../../../../../components/common/flyouts';
 import { WazuhFlyoutDiscover } from '../../../../common/wazuh-discover/wz-flyout-discover';
 import { PatternDataSource } from '../../../../common/data-source';
+import { PatternDataSourceFilterManager } from '../../../../common/data-source/pattern/pattern-data-source-filter-manager';
 import { formatUIDate } from '../../../../../react-services';
 import TechniqueRowDetails from '../../../mitre/framework/components/techniques/components/flyout-technique/technique-row-details';
 import {
@@ -183,14 +183,18 @@ export const RequirementFlyout = connect(mapStateToProps)(
     renderBody() {
       const { currentRequirement } = this.props;
       const requirementImplicitFilter = {};
-      const clusterFilter = {
-        'cluster.name': AppState.getClusterInfo().cluster,
-      };
-      this.clusterFilter = clusterFilter;
+      const clusterFilterValue =
+        PatternDataSourceFilterManager.getClusterFilterValue();
       requirementImplicitFilter[this.props.getRequirementKey()] =
         currentRequirement;
 
-      const implicitFilters = [requirementImplicitFilter, this.clusterFilter];
+      const implicitFilters = [requirementImplicitFilter];
+      if (clusterFilterValue) {
+        this.clusterFilter = {
+          'cluster.name': clusterFilterValue,
+        };
+        implicitFilters.push(this.clusterFilter);
+      }
       if (this.props.implicitFilters) {
         this.props.implicitFilters.forEach(item => implicitFilters.push(item));
       }

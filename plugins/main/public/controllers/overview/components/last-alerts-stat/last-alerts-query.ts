@@ -1,7 +1,7 @@
 export const getLastAlertsQuery = (
   currentIndexPattern: string,
-  clusterValue: string,
   ruleLevel: string,
+  clusterValue?: string,
 ) => {
   const clusterField = 'cluster.name';
   return {
@@ -32,19 +32,23 @@ export const getLastAlertsQuery = (
           'rule.level': ruleLevel,
         },
       },
-      {
-        query: {
-          match: {
-            [clusterField]: {
-              query: clusterValue,
-              type: 'phrase',
+      ...(clusterValue
+        ? [
+            {
+              query: {
+                match: {
+                  [clusterField]: {
+                    query: clusterValue,
+                    type: 'phrase',
+                  },
+                },
+              },
+              $state: {
+                store: 'appState',
+              },
             },
-          },
-        },
-        $state: {
-          store: 'appState',
-        },
-      },
+          ]
+        : []),
     ],
   };
 };
