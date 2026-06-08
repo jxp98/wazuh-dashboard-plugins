@@ -27,6 +27,7 @@ function getProjectInfo() {
 
   return {
     app: manifest['keywords'].includes('opensearch_dashboards') ? 'osd' : 'kbn',
+    gitRef: manifest['version'],
     version: manifest['pluginPlatform']['version'],
     repo: process.cwd(),
   };
@@ -122,10 +123,10 @@ function main() {
         cmd: 'plugin-helpers build',
         args: getBuildArgs({ ...projectInfo }),
       });
-      // Local Docker builds should not block on the interactive
-      // indexer-resources downloader during package installation.
-      if (!process.env.GIT_REF && !process.env.SKIP_DOWNLOAD_INDEXER_RESOURCES) {
-        envVars.SKIP_DOWNLOAD_INDEXER_RESOURCES = 'true';
+      // Local Docker builds still need generated known-fields/resources.
+      // Provide a deterministic Git ref so the downloader stays non-interactive.
+      if (!process.env.GIT_REF && projectInfo.gitRef) {
+        envVars.GIT_REF = projectInfo.gitRef;
       }
       break;
 

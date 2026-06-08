@@ -23,7 +23,9 @@ function parseInput(input) {
 
   for (let i = 0; i < input.length; i++) {
     if (input[i].startsWith('--')) {
-      const key = input[i].slice(2);
+      const key = input[i]
+        .slice(2)
+        .replace(/-([a-z])/g, (_, char) => char.toUpperCase());
       const value =
         input[i + 1] && !input[i + 1].startsWith('--') ? input[i + 1] : true;
       options[key] = value;
@@ -694,6 +696,19 @@ function extractFields(mappings, properties) {
  * Fetches template JSON from URL
  */
 function fetchTemplate(url) {
+  if (fs.existsSync(url)) {
+    return new Promise((resolve, reject) => {
+      try {
+        const template = JSON.parse(fs.readFileSync(url, 'utf8'));
+        resolve(template);
+      } catch (error) {
+        reject(
+          new Error(`Failed to parse local template from ${url}: ${error.message}`),
+        );
+      }
+    });
+  }
+
   return new Promise((resolve, reject) => {
     https
       .get(url, res => {
@@ -756,10 +771,25 @@ async function processTemplate(templateConfig, config) {
   console.log(`⚙️  Processing ${templateConfig.name} template...`);
 
   try {
+    const sources = templateConfig.urls.map(url => {
+      const interpolated = interpolate(url, { branch: config.branch });
+
+      if (!config.templateRoot) {
+        return interpolated;
+      }
+
+      const marker = `/${config.branch}/`;
+      const markerIndex = interpolated.indexOf(marker);
+      if (markerIndex === -1) {
+        return interpolated;
+      }
+
+      const relativeTemplatePath = interpolated.slice(markerIndex + marker.length);
+      return path.resolve(config.templateRoot, relativeTemplatePath);
+    });
+
     const { template, url } = await fetchTemplateFromUrls(
-      templateConfig.urls.map(url =>
-        interpolate(url, { branch: config.branch }),
-      ),
+      sources,
     );
     console.log(`  ✅ Successfully fetched from: ${url}`);
 
