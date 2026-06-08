@@ -18,9 +18,12 @@ See /docker/runner/docker-compose.yml for available environment variables.
 */
 
 const childProcess = require('child_process');
+const fs = require('fs');
 const { loadPackageJson } = require('./manifest');
 
 const COMPOSE_DIR = '../../docker/runner';
+const DEFAULT_INDEXER_TEMPLATE_ROOT =
+  '/opt/OWNHIDS/wazuh-indexer-5.0.0-beta1/repositories/wazuh-indexer-plugins';
 
 function getProjectInfo() {
   const manifest = loadPackageJson();
@@ -127,6 +130,13 @@ function main() {
       // Provide a deterministic Git ref so the downloader stays non-interactive.
       if (!process.env.GIT_REF && projectInfo.gitRef) {
         envVars.GIT_REF = projectInfo.gitRef;
+      }
+      if (
+        !process.env.INDEXER_TEMPLATE_ROOT &&
+        fs.existsSync(DEFAULT_INDEXER_TEMPLATE_ROOT)
+      ) {
+        envVars.INDEXER_TEMPLATE_HOST_ROOT = DEFAULT_INDEXER_TEMPLATE_ROOT;
+        envVars.INDEXER_TEMPLATE_ROOT = DEFAULT_INDEXER_TEMPLATE_ROOT;
       }
       break;
 

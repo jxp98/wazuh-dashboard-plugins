@@ -18,6 +18,8 @@ const parseArgs = () => {
   args.forEach(arg => {
     if (arg.startsWith('--branch=')) {
       params.branch = arg.split('=')[1];
+    } else if (arg.startsWith('--template-root=')) {
+      params.templateRoot = arg.split('=')[1];
     }
   });
 
@@ -51,9 +53,12 @@ const getBranch = () => {
 };
 
 // Configuration
+const args = parseArgs();
+
 const config = {
   // GitHub repository base URL with dynamic branch
   githubRepoBaseUrl: `https://raw.githubusercontent.com/wazuh/wazuh-indexer-plugins/${getBranch()}/plugins/setup/src/main/resources`,
+  templateRoot: args.templateRoot || process.env.INDEXER_TEMPLATE_ROOT,
   // Local directory where datasets are located
   localDatasetDir: path.join(__dirname, '../../server/lib/sample-data/dataset'),
   // List of datasets to update (obtained from local directory)
@@ -115,6 +120,17 @@ function downloadFile(dataset) {
         `No template mapping found for dataset: ${dataset}. Add it to datasetToTemplateMapping in config.`,
       ),
     );
+  }
+
+  if (config.templateRoot) {
+    const localPath = path.join(
+      config.templateRoot,
+      'plugins/setup/src/main/resources',
+      templateFile,
+    );
+
+    console.log(`Reading local template: ${localPath}`);
+    return fs.promises.readFile(localPath, 'utf8');
   }
 
   return new Promise((resolve, reject) => {

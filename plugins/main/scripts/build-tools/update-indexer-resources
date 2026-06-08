@@ -20,7 +20,13 @@ update_known_fields_from_templates() {
   local ref="$RESOLVED_CANDIDATE_REF"
   echo "Updating known fields of index pattern templates with indexer reference [$ref]..."
 
-  node $(realpath "$SCRIPT_PATH/../generate-known-fields/generate-known-fields.js") --branch $ref
+  local args=(--branch "$ref")
+
+  if [ -n "$INDEXER_TEMPLATE_ROOT" ]; then
+    args+=(--template-root "$INDEXER_TEMPLATE_ROOT")
+  fi
+
+  node $(realpath "$SCRIPT_PATH/../generate-known-fields/generate-known-fields.js") "${args[@]}"
 }
 
 # Function to update the index pattern templates for sample data
@@ -28,7 +34,13 @@ update_templates_sample_data() {
   local ref="$RESOLVED_CANDIDATE_REF"
   echo "Updating sample data of index pattern templates with indexer reference [$ref]..."
 
-  node $(realpath "$SCRIPT_PATH/../sample-data-templates/update-templates-sample-data.js") --branch=$ref
+  local args=(--branch="$ref")
+
+  if [ -n "$INDEXER_TEMPLATE_ROOT" ]; then
+    args+=(--template-root="$INDEXER_TEMPLATE_ROOT")
+  fi
+
+  node $(realpath "$SCRIPT_PATH/../sample-data-templates/update-templates-sample-data.js") "${args[@]}"
 }
 
 # Option 5: plugin package.json
@@ -53,6 +65,18 @@ try_package_json() {
 
 get_candidate_ref(){
   echo 'Getting candidate git references...'
+
+  if [ -n "$INDEXER_TEMPLATE_ROOT" ]; then
+      if [ ! -d "$INDEXER_TEMPLATE_ROOT/plugins/setup/src/main/resources/templates" ]; then
+          echo "INDEXER_TEMPLATE_ROOT does not contain plugins/setup/src/main/resources/templates: $INDEXER_TEMPLATE_ROOT"
+          exit 1
+      fi
+
+      RESOLVED_CANDIDATE_REF="${INPUT_CANDIDATE_REF:-local}"
+      echo "Using local indexer template root: $INDEXER_TEMPLATE_ROOT"
+      return 0
+  fi
+
   CANDIDATE_GIT_REFS=("$INPUT_CANDIDATE_REF")
 
   local version=$(try_package_json || true)

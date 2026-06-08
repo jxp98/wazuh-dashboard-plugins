@@ -15,9 +15,11 @@ services:
     working_dir: /home/node/kbn/plugins/wazuh
     environment:
       GIT_REF: ${GIT_REF:-}
+      INDEXER_TEMPLATE_ROOT: ${INDEXER_TEMPLATE_ROOT:-}
       SKIP_DOWNLOAD_INDEXER_RESOURCES: ${SKIP_DOWNLOAD_INDEXER_RESOURCES:-}
     volumes:
       - $REPO:/home/node/kbn/plugins/wazuh
+      - ${INDEXER_TEMPLATE_HOST_ROOT:-/opt/OWNHIDS/wazuh-indexer-5.0.0-beta1/repositories/wazuh-indexer-plugins}:${INDEXER_TEMPLATE_ROOT:-/opt/OWNHIDS/wazuh-indexer-5.0.0-beta1/repositories/wazuh-indexer-plugins}:ro
     tty: true
     command: /bin/bash -c '
       yarn;
